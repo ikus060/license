@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project default="package" name="Build script" basedir=".">
+
+	<property name="root.dir" value="." />
+	<property name="target.dir" value="${root.dir}/ant-target" />
+	<property name="bin.dir" value="${target.dir}/bin" />
+	<property name="src.dir" value="${root.dir}/src" />
+	<property name="libs.dir" value="${root.dir}/lib" />
+
+	<target name="init">
+		<property file="${root.dir}/version.properties" />
+		<tstamp />
+		<property name="jar.filename" value="${package.name}_${version}.${DSTAMP}.jar" />
+		<property name="src.filename" value="${package.name}.source_${version}.${DSTAMP}.zip" />
+		<mkdir dir="${target.dir}" />
+		<mkdir dir="${bin.dir}" />
+	</target>
+
+
+	<target name="compile" depends="init">
+		<path id="libs.classpath">
+			<fileset dir="${libs.dir}" includes="**/*.jar" />
+		</path>
+
+		<copy includeemptydirs="false" todir="${bin.dir}" filtering="true">
+			<fileset dir="${src.dir}" excludes="**/*.launch, **/*.testsuite, **/*.deploy, **/*.location, **/*.execution, **/*.datapool, **/*.artifact, **/*.html, **/*.svg, **/*.java" />
+		</copy>
+
+		<javac srcdir="${src.dir}" destdir="${bin.dir}" nowarn="yes" target="1.5" includeAntRuntime="no" debug="true" debuglevel="lines,vars,source">
+			<classpath refid="libs.classpath" />
+		</javac>
+
+	</target>
+
+	<!-- Main entry point to produce binaries for all supported platform -->
+	<target name="package" depends="package-src, jar" />
+
+	<target name="package-src" depends="init">
+		<zip destfile="${target.dir}/${src.filename}">
+			<zipfileset dir="${src.dir}" prefix="src" />
+			<zipfileset file="${root.dir}/README"/>
+			<zipfileset file="${root.dir}/build.xml"/>
+			<zipfileset file="${root.dir}/version.properties" />
+		</zip>
+	</target>
+
+	<target name="jar" depends="compile">
+		<jar destfile="${target.dir}/${jar.filename}" basedir="${bin.dir}" encoding="utf-8">
+		</jar>
+	</target>
+
+	<target name="clean" description="Use to clean the project">
+		<delete dir="${target.dir}" />
+		<delete dir="${bin.dir}" />
+	</target>
+
+</project>

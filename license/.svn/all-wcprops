@@ -1,0 +1,57 @@
+K 26
+svn:wc:ra_dav:activity-url
+V 19
+/projects/!svn/act/
+K 25
+svn:wc:ra_dav:version-url
+V 63
+/projects/!svn/ver/358/com.patrikdufresne.license/trunk/license
+END
+BSD
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/projects/!svn/ver/359/com.patrikdufresne.license/trunk/license/BSD
+END
+build.xml
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/projects/!svn/ver/353/com.patrikdufresne.license/trunk/license/build.xml
+END
+MIT
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/projects/!svn/ver/359/com.patrikdufresne.license/trunk/license/MIT
+END
+version.properties
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/projects/!svn/ver/356/com.patrikdufresne.license/trunk/license/version.properties
+END
+.project
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/projects/!svn/ver/353/com.patrikdufresne.license/trunk/license/.project
+END
+README
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/projects/!svn/ver/359/com.patrikdufresne.license/trunk/license/README
+END
+Apache
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/projects/!svn/ver/359/com.patrikdufresne.license/trunk/license/Apache
+END
+.classpath
+K 25
+svn:wc:ra_dav:version-url
+V 74
+/projects/!svn/ver/353/com.patrikdufresne.license/trunk/license/.classpath
+END

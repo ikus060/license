@@ -1,0 +1,36 @@
+Copyright (c) 2012 David Stites, Patrik Dufresne and others.
+
+LICENSING
+=========
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of either:
+
+	a) The MIT License (MIT)
+
+	b) Apache License 2.0
+	
+	c) Simplified BSD License
+	
+You should have received a copy of the MIT License (MIT) with this
+software, in the file named "MIT".  If not, I'll be glad to provide one.
+
+You should have received a copy of the Apache License 2.0
+along with this program in the file named "Apache".
+
+You should have received a copy of the Simplified BSD License
+along with this program in the file named "BSD".
+
+This package is based on the following article:
+http://blog.afewguyscoding.com/2012/02/licensing-module-java/
+
+Generate your keys
+==================
+
+Create the private key (containing informationto create the public key).
+
+  $ openssl genrsa -out privkey.pem 2048
+  $ openssl pkcs8 -topk8 -in privkey.pem -inform PEM -nocrypt -outform DER -out privkey.der
+ 
+Extract the public key, fur publishing.
+  $ openssl rsa -in privkey.pem -out pubkey.der -pubout -outform DER

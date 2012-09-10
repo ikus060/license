@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/projects/!svn/ver/354/com.patrikdufresne.license/trunk/unittest
+END
+privkey.der
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/projects/!svn/ver/355/com.patrikdufresne.license/trunk/unittest/privkey.der
+END
+pubkey.der
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/projects/!svn/ver/355/com.patrikdufresne.license/trunk/unittest/pubkey.der
+END
+privkey.pem
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/projects/!svn/ver/355/com.patrikdufresne.license/trunk/unittest/privkey.pem
+END
+.project
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/projects/!svn/ver/355/com.patrikdufresne.license/trunk/unittest/.project
+END
+.classpath
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/projects/!svn/ver/355/com.patrikdufresne.license/trunk/unittest/.classpath
+END

@@ -19,16 +19,13 @@
 
 
 	<target name="compile" depends="init">
-		<path id="libs.classpath">
-			<fileset dir="${libs.dir}" includes="**/*.jar" />
-		</path>
 
 		<copy includeemptydirs="false" todir="${bin.dir}" filtering="true">
 			<fileset dir="${src.dir}" excludes="**/*.launch, **/*.testsuite, **/*.deploy, **/*.location, **/*.execution, **/*.datapool, **/*.artifact, **/*.html, **/*.svg, **/*.java" />
 		</copy>
 
 		<javac srcdir="${src.dir}" destdir="${bin.dir}" nowarn="yes" target="1.5" includeAntRuntime="no" debug="true" debuglevel="lines,vars,source">
-			<classpath refid="libs.classpath" />
+			
 		</javac>
 
 	</target>

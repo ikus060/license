@@ -15,14 +15,11 @@
  */
 package com.patrikdufresne.license;
 
-import java.io.Serializable;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
 
-/**
- * This interface is used to represent a license data.
- * 
- * @author ikus060
- * 
- */
-public interface ILicense extends Serializable {
+@RunWith(Suite.class)
+@Suite.SuiteClasses( { EncryptionManagerTest.class, KeyManagerTest.class, LicenseManagerTest.class })
+public class AllTests {
 
 }

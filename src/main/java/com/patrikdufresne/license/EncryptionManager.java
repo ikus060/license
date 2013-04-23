@@ -33,25 +33,15 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
 /**
- * This class is used to manage the encryption of the license. It's used to
- * encrypt, sign and validate using a public or private key.
+ * This class is used to manage the encryption of the license. It's used to encrypt, sign and validate using a public or
+ * private key.
  * 
  * @author Patrik Dufresne
  * 
  */
 public class EncryptionManager {
 
-    private static final int SIZE = 2048;
-
-    /**
-     * Single instance of the utility class.
-     */
-    // private static EncryptionManager instance;
-
-    // private static final String PUBLIC_KEY_FILE = "/License/public_key.der";
-
-    // private static final String PRIVATE_KEY_FILE =
-    // "/path/to/your/private_key.der";
+    private static final int BUF_SIZE = 4096;
 
     private PublicKey publicKey;
 
@@ -70,8 +60,7 @@ public class EncryptionManager {
      * @throws NoSuchAlgorithmException
      *             if no Provider supports RSA
      * @throws InvalidKeySpecException
-     *             if the given key specification is inappropriate for this key
-     *             factory to produce a public key.
+     *             if the given key specification is inappropriate for this key factory to produce a public key.
      */
     public EncryptionManager(byte[] publicKey, byte[] privateKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
         if (publicKey == null) {
@@ -100,8 +89,8 @@ public class EncryptionManager {
      */
     public static byte[] readAll(InputStream input) throws IOException {
         // Read the content of the file and store it in a byte array.
-        ByteArrayOutputStream out = new ByteArrayOutputStream(SIZE);
-        byte[] buf = new byte[SIZE];
+        ByteArrayOutputStream out = new ByteArrayOutputStream(BUF_SIZE);
+        byte[] buf = new byte[BUF_SIZE];
         int size;
         while ((size = input.read(buf)) != -1) {
             out.write(buf, 0, size);
@@ -110,16 +99,14 @@ public class EncryptionManager {
     }
 
     /**
-     * This function maybe used to read the public and/or private key from a
-     * file.
+     * This function maybe used to read the public and/or private key from a file.
      * 
      * @param file
      *            the file to read
      * @return the file data
      * 
      * @throws IOException
-     *             if the file does not exist, or if the first byte cannot be
-     *             read for any reason
+     *             if the file does not exist, or if the first byte cannot be read for any reason
      */
     public static byte[] readAll(File file) throws IOException {
         InputStream input = new FileInputStream(file);
@@ -144,8 +131,7 @@ public class EncryptionManager {
      * @throws InvalidKeyException
      *             if the key is invalid.
      * @throws SignatureException
-     *             if this signature algorithm is unable to process the input
-     *             data
+     *             if this signature algorithm is unable to process the input data
      */
     public boolean verify(byte[] data, byte[] sig) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
 
@@ -162,20 +148,17 @@ public class EncryptionManager {
     }
 
     /**
-     * Sign the given input stream data. The signature is append to the output
-     * stream.
+     * Sign the given input stream data. The signature is append to the output stream.
      * 
      * @param data
      *            the the data to be signed.
      * @return the signature for the given data.
      * @throws NoSuchAlgorithmException
-     *             if no Provider supports a Signature implementation for
-     *             SHA1withRSA.
+     *             if no Provider supports a Signature implementation for SHA1withRSA.
      * @throws InvalidKeyException
      *             if the private key is invalid.
      * @throws SignatureException
-     *             if this signature algorithm is unable to process the input
-     *             data provided.
+     *             if this signature algorithm is unable to process the input data provided.
      * @throws UnsupportedOperationException
      *             if the private key was not providedin the constructor.
      */

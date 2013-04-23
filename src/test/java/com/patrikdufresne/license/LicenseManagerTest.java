@@ -28,19 +28,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * This class test all the functionnality provided by the {@link LicenseManager}
- * .
+ * This class test all the functionnality provided by the {@link LicenseManager} .
  * 
  * @author ikus060
  * 
  */
 public class LicenseManagerTest {
-
-    static class MockLicense extends AbstractLicense {
-
-        private static final long serialVersionUID = -4612807836761969030L;
-
-    }
 
     private LicenseManager manager;
 
@@ -58,8 +51,17 @@ public class LicenseManagerTest {
      * @throws InvalidKeyException
      */
     @Test
+    public void writeLicense_WithEmptyLicense_CreateTheFile() throws InvalidKeyException, NoSuchAlgorithmException, SignatureException, IOException {
+        License license = new License();
+        File file = new File("unittest.lic");
+        manager.writeLicense(license, file);
+        assertTrue(file.exists());
+    }
+
+    @Test
     public void writeLicense_WithLicense_CreateTheFile() throws InvalidKeyException, NoSuchAlgorithmException, SignatureException, IOException {
-        MockLicense license = new MockLicense();
+        License license = new License();
+        license.setProperty(License.NAME, "A test name");
         File file = new File("unittest.lic");
         manager.writeLicense(license, file);
         assertTrue(file.exists());
@@ -81,13 +83,13 @@ public class LicenseManagerTest {
             SignatureException,
             IOException,
             ClassNotFoundException {
-        MockLicense license = new MockLicense();
+        License license = new License();
         File file = new File("unittest2.lic");
         manager.writeLicense(license, file);
         assertTrue(file.exists());
 
         // Read the file
-        MockLicense license2 = (MockLicense) manager.readLicenseFile(file);
+        License license2 = (License) manager.readLicenseFile(file);
         assertNotNull(license2);
 
     }

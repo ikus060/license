@@ -22,6 +22,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
@@ -30,43 +32,44 @@ import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.SignatureException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Properties;
 
 /**
- * This the main entry point of the licensing module. This class should be used
- * to create and check license files.
+ * This the main entry point of the licensing module. This class should be used to create and check license files.
  * <p>
- * Generally, an application will not required more then one instance of license
- * manager.
+ * Generally, an application will not required more then one instance of license manager.
  * 
  * @author Patrik Dufresne
  * 
  */
 public class LicenseManager {
-    private static final int SIZE = 2048;
+    /**
+     * Property to store the signature.
+     */
+    private static final String SIGNATURE = "signature";
     /**
      * The encryption manager used by this class.F
      */
     private EncryptionManager encryptionManager;
 
     /**
-     * Create a new license manager.
+     * Create a new license manager. Generally, an application will not required more then one instance of license
+     * manager.
      * 
      * @param publicKey
-     *            the public key filename.
+     *            the public key (can't be null).
      * @param privateKey
-     *            the private key filename (null if not available).
+     *            the private key (null if not available).
      * @throws GeneralSecurityException
      *             if the provided key are invalid.
-     * @throws IOException
-     *             if the file doesn't exists
      */
-    public LicenseManager(String publicKey, String privateKey) throws GeneralSecurityException, IOException {
-        byte[] pubdata = EncryptionManager.readAll(new File(publicKey));
-        byte[] privdata = null;
-        if (privateKey != null) {
-            privdata = EncryptionManager.readAll(new File(privateKey));
-        }
-        this.encryptionManager = new EncryptionManager(pubdata, privdata);
+    public LicenseManager(byte[] publicKey, byte[] privateKey) throws GeneralSecurityException {
+        this.encryptionManager = new EncryptionManager(publicKey, privateKey);
     }
 
     /**
@@ -108,19 +111,24 @@ public class LicenseManager {
     }
 
     /**
-     * Create a new license manager. Generally, an application will not required
-     * more then one instance of license manager.
+     * Create a new license manager.
      * 
      * @param publicKey
-     *            the public key (can't be null).
-     * 
+     *            the public key filename.
      * @param privateKey
-     *            the private key (null if not available).
+     *            the private key filename (null if not available).
      * @throws GeneralSecurityException
      *             if the provided key are invalid.
+     * @throws IOException
+     *             if the file doesn't exists
      */
-    public LicenseManager(byte[] publicKey, byte[] privateKey) throws GeneralSecurityException {
-        this.encryptionManager = new EncryptionManager(publicKey, privateKey);
+    public LicenseManager(String publicKey, String privateKey) throws GeneralSecurityException, IOException {
+        byte[] pubdata = EncryptionManager.readAll(new File(publicKey));
+        byte[] privdata = null;
+        if (privateKey != null) {
+            privdata = EncryptionManager.readAll(new File(privateKey));
+        }
+        this.encryptionManager = new EncryptionManager(pubdata, privdata);
     }
 
     /**
@@ -132,53 +140,44 @@ public class LicenseManager {
      * @throws IOException
      *             if file not found or read error.
      * @throws SignatureException
-     *             if this signature algorithm is unable to process the content
-     *             of the file
+     *             if this signature algorithm is unable to process the content of the file
      * @throws NoSuchAlgorithmException
      *             if the SHA algorithm doesn't exists
      * @throws InvalidKeyException
      *             if the public key is invalid
      * @throws ClassNotFoundException
-     *             if the implementation of {@link ILicense} stored in the file
-     *             can't be found
+     *             if the implementation of {@link License} stored in the file can't be found
      */
-    public ILicense readLicenseFile(File file) throws IOException, InvalidKeyException, NoSuchAlgorithmException, SignatureException, ClassNotFoundException {
+    public License readLicenseFile(File file) throws IOException, InvalidKeyException, NoSuchAlgorithmException, SignatureException, ClassNotFoundException {
 
-        // Read the content of the file
-        byte[] sig;
-        byte[] data;
-        ObjectInputStream fileIn = new ObjectInputStream(new BufferedInputStream(new FileInputStream(file)));
-        try {
-            int sigLength = fileIn.readInt();
-            sig = new byte[sigLength];
-            fileIn.read(sig);
-
-            ByteArrayOutputStream dataStream = new ByteArrayOutputStream();
-            byte[] buf = new byte[SIZE];
-            int len;
-            while ((len = fileIn.read(buf)) != -1) {
-                dataStream.write(buf, 0, len);
+        String base64Signature = null;
+        // Read the license file as a property file.
+        Properties prop = new Properties();
+        prop.load(new FileReader(file));
+        License lic = new License();
+        for (Object key : prop.keySet()) {
+            String value = (String) prop.get(key);
+            if (SIGNATURE.equals(key)) {
+                base64Signature = value;
+            } else {
+                lic.setProperty((String) key, value);
             }
-            dataStream.flush();
-            data = dataStream.toByteArray();
-            dataStream.close();
-        } finally {
-            fileIn.close();
         }
+        // Check if the signature is available.
+        if (base64Signature == null) {
+            throw new SignatureException("No signature was found");
+        }
+        byte[] sig = Base64.decode(base64Signature.getBytes());
+
+        // Check if the signature matches.
+        byte[] data = writeLicenseToByteArray(lic);
 
         // Validate the signature
         if (!encryptionManager.verify(data, sig)) {
             return null;
         }
 
-        // Read the license object from the data.
-        ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(data));
-        try {
-            ILicense license = (ILicense) in.readObject();
-            return license;
-        } finally {
-            in.close();
-        }
+        return lic;
 
     }
 
@@ -188,40 +187,56 @@ public class LicenseManager {
      * @param license
      *            the license object.
      * @param file
-     *            the location where to save the new license file. If file
-     *            exists, it's overwrite.
+     *            the location where to save the new license file. If file exists, it's overwrite.
      * @throws IOException
      *             if the file doesn't exists or can't be written to
      * @throws SignatureException
-     *             if this signature algorithm is unable to process the license
-     *             data
+     *             if this signature algorithm is unable to process the license data
      * @throws NoSuchAlgorithmException
      *             if the algorithm SHA is not supported
      * @throws InvalidKeyException
      *             if the private key is invalid.
      */
-    public void writeLicense(ILicense license, File file) throws IOException, InvalidKeyException, NoSuchAlgorithmException, SignatureException {
-        // Write the license information into a byte array.
-        ByteArrayOutputStream dataStream = new ByteArrayOutputStream();
-        ObjectOutputStream out = new ObjectOutputStream(dataStream);
-        out.writeObject(license);
-        byte[] data = dataStream.toByteArray();
-        out.close();
+    public void writeLicense(License lic, File file) throws IOException, InvalidKeyException, NoSuchAlgorithmException, SignatureException {
+
+        byte[] data = writeLicenseToByteArray(lic);
 
         // Then sign the byte array
         byte[] signature = this.encryptionManager.sign(data);
+        String base64signature = Base64.encode(signature);
 
-        // Write all the data into one single file.
-        ObjectOutputStream fileOut = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream(file)));
-        try {
-            fileOut.writeInt(signature.length);
-            fileOut.write(signature);
-            fileOut.write(data);
-            fileOut.flush();
-        } finally {
-            fileOut.close();
+        // Create property file
+        Properties prop = new Properties();
+        for (Entry<String, String> e : lic.getProperties().entrySet()) {
+            prop.setProperty(e.getKey(), e.getValue());
         }
+        prop.put(SIGNATURE, base64signature);
 
+        // Write the property file
+        prop.store(new FileWriter(file), "License file");
     }
 
+    /**
+     * Write the license information into a byte array ready to be signed.
+     * 
+     * @param lic
+     *            the license
+     * @return the byte array
+     * @throws IOException
+     */
+    protected byte[] writeLicenseToByteArray(License lic) throws IOException {
+        ByteArrayOutputStream dataStream = new ByteArrayOutputStream();
+        ObjectOutputStream out = new ObjectOutputStream(dataStream);
+        // Sort the key to have a predictable results.
+        List<String> keys = new ArrayList<String>(lic.getProperties().keySet());
+        Collections.sort(keys);
+        for (String key : keys) {
+            String value = lic.getProperty(key);
+            out.writeChars(key);
+            out.writeChars(value);
+        }
+        byte[] data = dataStream.toByteArray();
+        out.close();
+        return data;
+    }
 }

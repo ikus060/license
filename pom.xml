@@ -2,7 +2,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.patrikdufresne.license</groupId>
 	<artifactId>com.patrikdufresne.license</artifactId>
-	<version>0.4</version>
+	<version>0.5-SNAPSHOT</version>
 	<!-- Define the SCM used for developpement. This information is used by 
 		release:prepare -->
 	<scm>

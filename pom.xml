@@ -12,18 +12,16 @@
 	<distributionManagement>
 		<repository>
 			<id>patrikdufresne</id>
-			<url>scpexe://patrikdufresne.com/var/www/maven2/repo/</url>
+			<name>Internal Releases</name>
+			<url>http://nexus.patrikdufresne.com/content/repositories/releases/</url>
 		</repository>
+		<snapshotRepository>
+			<id>patrikdufresne</id>
+			<name>Internal Releases</name>
+			<url>http://nexus.patrikdufresne.com/content/repositories/snapshots/</url>
+		</snapshotRepository>
 	</distributionManagement>
 	<build>
-		<extensions>
-			<!-- Enabling the use of SSH -->
-			<extension>
-				<groupId>org.apache.maven.wagon</groupId>
-				<artifactId>wagon-ssh-external</artifactId>
-				<version>1.0-beta-6</version>
-			</extension>
-		</extensions>
 		<plugins>
 			<!-- javac version to 1.6 -->
 			<plugin>

@@ -25,7 +25,9 @@ import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
+import java.security.Provider;
 import java.security.PublicKey;
+import java.security.Security;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
@@ -165,6 +167,10 @@ public class EncryptionManager {
     public byte[] sign(byte[] data) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
         if (privateKey == null) {
             throw new UnsupportedOperationException("Can't sign when the private key is not available.");
+        }
+
+        for (Provider p : Security.getProviders()) {
+            System.out.println(p.getName());
         }
 
         // Initialize the signing algorithm with our private key

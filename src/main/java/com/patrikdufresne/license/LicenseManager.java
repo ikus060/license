@@ -235,6 +235,7 @@ public class LicenseManager {
             out.writeChars(key);
             out.writeChars(value);
         }
+        out.flush();
         byte[] data = dataStream.toByteArray();
         out.close();
         return data;

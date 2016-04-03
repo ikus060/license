@@ -15,18 +15,12 @@
  */
 package com.patrikdufresne.license;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
@@ -40,9 +34,11 @@ import java.util.Map.Entry;
 import java.util.Properties;
 
 /**
- * This the main entry point of the licensing module. This class should be used to create and check license files.
+ * This the main entry point of the licensing module. This class should be used
+ * to create and check license files.
  * <p>
- * Generally, an application will not required more then one instance of license manager.
+ * Generally, an application will not required more then one instance of license
+ * manager.
  * 
  * @author Patrik Dufresne
  * 
@@ -58,8 +54,39 @@ public class LicenseManager {
     private EncryptionManager encryptionManager;
 
     /**
-     * Create a new license manager. Generally, an application will not required more then one instance of license
-     * manager.
+     * Utility function to easily validate a license file.
+     */
+    public static License validate(InputStream publicKey, File... files) throws LicenseException {
+        if (publicKey == null || files == null || files.length == 0) {
+            throw new IllegalArgumentException();
+        }
+        // Create a new license manager.
+        LicenseManager licenseManager;
+        try {
+            licenseManager = new LicenseManager(publicKey, null);
+        } catch (Exception e) {
+            throw new LicenseException("invalid public key", e);
+        }
+        // Validate each license file.
+        LicenseException lastException = null;
+        for (File f : files) {
+            License license;
+            try {
+                license = licenseManager.readLicenseFile(f);
+                license.validate(new Date(), null);
+                return license;
+            } catch (LicenseException e) {
+                lastException = e;
+            } catch (Exception e) {
+                lastException = new LicenseException("invalid licence file", e);
+            }
+        }
+        throw lastException;
+    }
+
+    /**
+     * Create a new license manager. Generally, an application will not required
+     * more then one instance of license manager.
      * 
      * @param publicKey
      *            the public key (can't be null).
@@ -123,12 +150,7 @@ public class LicenseManager {
      *             if the file doesn't exists
      */
     public LicenseManager(String publicKey, String privateKey) throws GeneralSecurityException, IOException {
-        byte[] pubdata = EncryptionManager.readAll(new File(publicKey));
-        byte[] privdata = null;
-        if (privateKey != null) {
-            privdata = EncryptionManager.readAll(new File(privateKey));
-        }
-        this.encryptionManager = new EncryptionManager(pubdata, privdata);
+        this(new File(publicKey), new File(privateKey));
     }
 
     /**
@@ -140,13 +162,15 @@ public class LicenseManager {
      * @throws IOException
      *             if file not found or read error.
      * @throws SignatureException
-     *             if this signature algorithm is unable to process the content of the file
+     *             if this signature algorithm is unable to process the content
+     *             of the file
      * @throws NoSuchAlgorithmException
      *             if the SHA algorithm doesn't exists
      * @throws InvalidKeyException
      *             if the public key is invalid
      * @throws ClassNotFoundException
-     *             if the implementation of {@link License} stored in the file can't be found
+     *             if the implementation of {@link License} stored in the file
+     *             can't be found
      */
     public License readLicenseFile(File file) throws IOException, InvalidKeyException, NoSuchAlgorithmException, SignatureException, ClassNotFoundException {
 
@@ -187,11 +211,13 @@ public class LicenseManager {
      * @param license
      *            the license object.
      * @param file
-     *            the location where to save the new license file. If file exists, it's overwrite.
+     *            the location where to save the new license file. If file
+     *            exists, it's overwrite.
      * @throws IOException
      *             if the file doesn't exists or can't be written to
      * @throws SignatureException
-     *             if this signature algorithm is unable to process the license data
+     *             if this signature algorithm is unable to process the license
+     *             data
      * @throws NoSuchAlgorithmException
      *             if the algorithm SHA is not supported
      * @throws InvalidKeyException

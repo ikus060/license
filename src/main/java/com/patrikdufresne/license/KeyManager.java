@@ -78,10 +78,8 @@ public class KeyManager {
         final int b1 = b % 3;
         if (a1 % 2 == 0) {
             return (byte) (((seed >> a1) & 0x000000FF) ^ ((seed >> b1) | c));
-        } else {
-            return (byte) (((seed >> a1) & 0x000000FF) ^ ((seed >> b1) & c));
         }
-
+        return (byte) (((seed >> a1) & 0x000000FF) ^ ((seed >> b1) & c));
     }
 
     /**

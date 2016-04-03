@@ -6,7 +6,7 @@
 	<!-- Define the SCM used for developpement. This information is used by 
 		release:prepare -->
 	<scm>
-		<developerConnection>scm:git:ssh://gitosis@tintaglia.patrikdufresne.com/license.git</developerConnection>
+		<developerConnection>scm:git:http://git.patrikdufresne.com/common/license.git</developerConnection>
 	</scm>
 	<!-- Define the repository. Used by deploy:deploy -->
 	<distributionManagement>

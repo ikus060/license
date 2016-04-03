@@ -88,6 +88,7 @@ public class LicenseManagerTest {
      * @throws NoSuchAlgorithmException
      * @throws InvalidKeyException
      * @throws ClassNotFoundException
+     * @throws LicenseException
      */
     @Test
     public void readLicense_WithValidFile_ReadLicense()
@@ -95,7 +96,8 @@ public class LicenseManagerTest {
             NoSuchAlgorithmException,
             SignatureException,
             IOException,
-            ClassNotFoundException {
+            ClassNotFoundException,
+            LicenseException {
         License license = new License();
         File file = new File("unittest2.lic");
         manager.writeLicense(license, file);

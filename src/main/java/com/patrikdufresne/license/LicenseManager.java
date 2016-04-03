@@ -70,6 +70,9 @@ public class LicenseManager {
         // Validate each license file.
         LicenseException lastException = null;
         for (File f : files) {
+            if (!f.exists()) {
+                continue;
+            }
             License license;
             try {
                 license = licenseManager.readLicenseFile(f);
@@ -171,8 +174,15 @@ public class LicenseManager {
      * @throws ClassNotFoundException
      *             if the implementation of {@link License} stored in the file
      *             can't be found
+     * @throws LicenseException
      */
-    public License readLicenseFile(File file) throws IOException, InvalidKeyException, NoSuchAlgorithmException, SignatureException, ClassNotFoundException {
+    public License readLicenseFile(File file)
+            throws IOException,
+            InvalidKeyException,
+            NoSuchAlgorithmException,
+            SignatureException,
+            ClassNotFoundException,
+            LicenseException {
 
         String base64Signature = null;
         // Read the license file as a property file.
@@ -189,7 +199,7 @@ public class LicenseManager {
         }
         // Check if the signature is available.
         if (base64Signature == null) {
-            throw new SignatureException("No signature was found");
+            throw new LicenseException("No signature was found");
         }
         byte[] sig = Base64.decode(base64Signature.getBytes());
 
@@ -198,7 +208,7 @@ public class LicenseManager {
 
         // Validate the signature
         if (!encryptionManager.verify(data, sig)) {
-            return null;
+            throw new LicenseException("invalid license signature");
         }
 
         return lic;

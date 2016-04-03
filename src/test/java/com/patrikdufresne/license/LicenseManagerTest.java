@@ -28,7 +28,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 /**
- * This class test all the functionnality provided by the {@link LicenseManager} .
+ * This class test all the functionnality provided by the {@link LicenseManager}
+ * .
  * 
  * @author ikus060
  * 
@@ -40,6 +41,18 @@ public class LicenseManagerTest {
     @Before
     public void initLicenseManager() throws GeneralSecurityException, IOException {
         this.manager = new LicenseManager(getClass().getResourceAsStream("/pubkey.der"), getClass().getResourceAsStream("/privkey.der"));
+    }
+
+    /**
+     * Check if validate is working.
+     * 
+     */
+    @Test
+    public void validate() throws Exception {
+        License license = new License();
+        File file = new File("unittest2.lic");
+        manager.writeLicense(license, file);
+        LicenseManager.validate(getClass().getResourceAsStream("/pubkey.der"), file);
     }
 
     /**

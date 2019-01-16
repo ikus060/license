@@ -144,7 +144,15 @@ public class Main {
 
     public static void usage() {
         System.out.println("usage:");
-        System.out.println("  create");
+        System.out.println("  create -p pubkey.der -P privkey.der [-n name] [-m email] -e YYYY-mm-dd [-f application.lic]");
+        System.out.println("  validate -p pubkey.der [-f application.lic]");
+        System.out.println("");
+        System.out.println("  -p, --public     define the public key file in DER format");
+        System.out.println("  -P, --private    define the private key file file in DER format");
+        System.out.println("  -n, --name       name to be stored in the license file (optional)");
+        System.out.println("  -m, --mail       email to be stored in the license file (optional)");
+        System.out.println("  -e, --expiration expiration date in YYYY-mm-dd format");
+        System.out.println("  -f, --file       the license file to be created or validated (default: application.lic)");
         System.exit(1);
     }
 

@@ -35,15 +35,3 @@ nexus_deploy:
   stage: publish
   script:
   - mvn -B -s ./settings.xml -Drevision=${REVISION} clean install deploy
-
-github_push:
-  stage: publish
-  script:
-  - git push --force https://${GITHUB_USR}:${GITHUB_PWD}@github.com/ikus060/${CI_PROJECT_NAME}.git refs/remotes/origin/${CI_COMMIT_REF_NAME}:refs/heads/${CI_COMMIT_REF_NAME}
-  - git push https://${GITHUB_USR}:${GITHUB_PWD}@github.com/ikus060/${CI_PROJECT_NAME}.git --tags
-
-gitlab_push:
-  stage: publish
-  script:
-  - git push --force https://${GITLAB_COM_USR}:${GITLAB_COM_PWD}@gitlab.com/pdsl/${CI_PROJECT_NAME}.git refs/remotes/origin/${CI_COMMIT_REF_NAME}:refs/heads/${CI_COMMIT_REF_NAME}
-  - git push https://${GITLAB_COM_USR}:${GITLAB_COM_PWD}@gitlab.com/pdsl/${CI_PROJECT_NAME}.git --tags

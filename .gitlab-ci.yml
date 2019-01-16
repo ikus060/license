@@ -1,0 +1,49 @@
+image: maven:3-jdk-7
+
+variables:
+  MAVEN_OPTS: "-Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=WARN
+               -Dorg.slf4j.simpleLogger.showDateTime=true
+               -Djava.awt.headless=true
+               -Dmaven.repo.local=.m2/repository"
+
+# Cache downloaded dependencies and plugins between builds.
+cache:
+  paths:
+    - .m2/repository
+
+stages:
+  - build
+  - publish
+
+before_script:
+- export REVISION="$(curl http://git.patrikdufresne.com/pdsl/maven-scm-version/raw/master/version.sh | bash -)"
+- echo "REVISION=$REVISION"
+
+test:
+  stage: build
+  script:
+  - mvn -B -Drevision=${REVISION} clean install
+
+sonar:
+  image: maven:3-jdk-8
+  stage: build
+  allow_failure: true
+  script:
+  - mvn -B -Drevision=${REVISION} -Dsonar.host.url=$SONAR_URL -Dsonar.login=$SONAR_TOKEN clean verify sonar:sonar
+
+nexus_deploy:
+  stage: publish
+  script:
+  - mvn -B -s ./settings.xml -Drevision=${REVISION} clean install deploy
+
+github_push:
+  stage: publish
+  script:
+  - git push --force https://${GITHUB_USR}:${GITHUB_PWD}@github.com/ikus060/${CI_PROJECT_NAME}.git refs/remotes/origin/${CI_COMMIT_REF_NAME}:refs/heads/${CI_COMMIT_REF_NAME}
+  - git push https://${GITHUB_USR}:${GITHUB_PWD}@github.com/ikus060/${CI_PROJECT_NAME}.git --tags
+
+gitlab_push:
+  stage: publish
+  script:
+  - git push --force https://${GITLAB_COM_USR}:${GITLAB_COM_PWD}@gitlab.com/pdsl/${CI_PROJECT_NAME}.git refs/remotes/origin/${CI_COMMIT_REF_NAME}:refs/heads/${CI_COMMIT_REF_NAME}
+  - git push https://${GITLAB_COM_USR}:${GITLAB_COM_PWD}@gitlab.com/pdsl/${CI_PROJECT_NAME}.git --tags

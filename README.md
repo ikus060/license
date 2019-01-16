@@ -38,7 +38,7 @@ To make use of this license library, you must change a bit the implementation of
 			    <dependency>
 			    <groupId>com.patrikdufresne</groupId>
 			    <artifactId>license</artifactId>
-			    <version>0.10</version>
+			    <version>0.11</version>
 		    </dependency>
 	    </dependencies>
 
@@ -58,19 +58,14 @@ In your java code, you must implement something similar.
 
 ## Generate a license file
 
+To generate a license file you may use the jar it self.
+
+    wget https://nexus.patrikdufresne.com/repository/public/com/patrikdufresne/license/0.11/license-0.11.jar
+    java -jar license-0.11.jar create -p pubkey.der -P privkey.der -n username -m test@example.com -e 2020-01-09
+
+It's generate a license file named `application.lic`.
 
 
+# Notes
+This library is compatible with Java 7 and earlier. This library doesn't need any dependecies.
 
-# Java version
-This library is compatible with Java7 and earlier.
-
-# License
-
-This program is free software; you can redistribute it and/or modify
-it under the terms of Apache License 2.0
-    
-You should have received a copy of the Apache License 2.0
-along with this program in the file named "LICENSE".
-
-This package is based on the following article:
-http://blog.afewguyscoding.com/2012/02/licensing-module-java/

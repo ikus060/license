@@ -135,7 +135,7 @@ public class Main {
             } else {
                 usage();
             }
-        } catch (IOException e) {
+        } catch (IOException | IllegalArgumentException e) {
             System.err.println(e.getMessage());
             System.exit(1);
         }

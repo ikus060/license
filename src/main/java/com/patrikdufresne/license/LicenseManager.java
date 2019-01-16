@@ -17,15 +17,24 @@ package com.patrikdufresne.license;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
+import java.io.OutputStreamWriter;
 import java.security.GeneralSecurityException;
 import java.security.InvalidKeyException;
+import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.Signature;
 import java.security.SignatureException;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -48,10 +57,126 @@ public class LicenseManager {
      * Property to store the signature.
      */
     private static final String SIGNATURE = "signature";
+
     /**
-     * The encryption manager used by this class.F
+     * Define the encoding to be used to read and write the license file. Since the license may be generate on different
+     * platform with different default encoding, we need to hardcode this into a fixed encoding. UTF-8 should be a good
+     * choice.
      */
-    private EncryptionManager encryptionManager;
+    private static final String ENCODING = "UTF-8";
+
+    private static final int BUF_SIZE = 4096;
+
+    private PublicKey publicKey;
+
+    /**
+     * Our private key.
+     */
+    private PrivateKey privateKey;
+
+    /**
+     * This function is used to read a stream.
+     * 
+     * @param input
+     *            the input stream
+     * @return the data read from the stream
+     * @throws IOException
+     */
+    private static byte[] readAll(InputStream input) throws IOException {
+        if (input == null) {
+            return null;
+        }
+        // Read the content of the file and store it in a byte array.
+        ByteArrayOutputStream out = new ByteArrayOutputStream(BUF_SIZE);
+        byte[] buf = new byte[BUF_SIZE];
+        int size;
+        while ((size = input.read(buf)) != -1) {
+            out.write(buf, 0, size);
+        }
+        return out.toByteArray();
+    }
+
+    /**
+     * This function maybe used to read the public and/or private key from a file.
+     * 
+     * @param file
+     *            the file to read
+     * @return the file data
+     * 
+     * @throws IOException
+     *             if the file does not exist, or if the first byte cannot be read for any reason
+     */
+    private static byte[] readAll(File file) throws IOException {
+        if (file == null) {
+            return null;
+        }
+        InputStream input = new FileInputStream(file);
+        try {
+            return readAll(input);
+        } finally {
+            input.close();
+        }
+    }
+
+    /**
+     * Use to check if the given data matches the given signature.
+     * 
+     * @param data
+     *            the data
+     * @param sig
+     *            the signature associated with the data.
+     * 
+     * @throws NoSuchAlgorithmException
+     *             if the algorithm SHA1withRSA is not supported.
+     * @throws NoSuchProviderException
+     * @throws InvalidKeyException
+     *             if the key is invalid.
+     * @throws SignatureException
+     *             if this signature algorithm is unable to process the input data
+     */
+    protected boolean verify(byte[] data, byte[] sig) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+
+        // Initialize the signing algorithm with our public key
+        Signature rsaSignature = Signature.getInstance("SHA1withRSA");
+        rsaSignature.initVerify(publicKey);
+
+        // Update the signature algorithm with the data.
+        rsaSignature.update(data);
+
+        // Validate the signature
+        return rsaSignature.verify(sig);
+
+    }
+
+    /**
+     * Sign the given input stream data. The signature is append to the output stream.
+     * 
+     * @param data
+     *            the the data to be signed.
+     * @return the signature for the given data.
+     * @throws NoSuchAlgorithmException
+     *             if no Provider supports a Signature implementation for SHA1withRSA.
+     * @throws InvalidKeyException
+     *             if the private key is invalid.
+     * @throws SignatureException
+     *             if this signature algorithm is unable to process the input data provided.
+     * @throws UnsupportedOperationException
+     *             if the private key was not providedin the constructor.
+     */
+    protected byte[] sign(byte[] data) throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
+        if (privateKey == null) {
+            throw new UnsupportedOperationException("Can't sign when the private key is not available.");
+        }
+
+        // Initialize the signing algorithm with our private key
+        Signature rsaSignature = Signature.getInstance("SHA1withRSA");
+        rsaSignature.initSign(privateKey);
+        rsaSignature.update(data);
+
+        // Generate the signature.
+        return rsaSignature.sign();
+
+    }
 
     /**
      * Utility function to easily validate a license file.
@@ -99,7 +224,21 @@ public class LicenseManager {
      *             if the provided key are invalid.
      */
     public LicenseManager(byte[] publicKey, byte[] privateKey) throws GeneralSecurityException {
-        this.encryptionManager = new EncryptionManager(publicKey, privateKey);
+
+        if (publicKey == null) {
+            throw new NullPointerException("publicKey");
+        }
+
+        X509EncodedKeySpec spec = new X509EncodedKeySpec(publicKey);
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        this.publicKey = kf.generatePublic(spec);
+
+        if (privateKey != null) {
+            PKCS8EncodedKeySpec privateSpec = new PKCS8EncodedKeySpec(privateKey);
+            KeyFactory privateKeyFactory = KeyFactory.getInstance("RSA");
+            this.privateKey = privateKeyFactory.generatePrivate(privateSpec);
+        }
+
     }
 
     /**
@@ -115,12 +254,7 @@ public class LicenseManager {
      *             if the file doesn't exists
      */
     public LicenseManager(File publicKey, File privateKey) throws GeneralSecurityException, IOException {
-        byte[] pubdata = EncryptionManager.readAll(publicKey);
-        byte[] privdata = null;
-        if (privateKey != null) {
-            privdata = EncryptionManager.readAll(privateKey);
-        }
-        this.encryptionManager = new EncryptionManager(pubdata, privdata);
+        this(readAll(publicKey), readAll(privateKey));
     }
 
     /**
@@ -132,12 +266,7 @@ public class LicenseManager {
      *            an input stream containing the private key
      */
     public LicenseManager(InputStream publicKey, InputStream privateKey) throws GeneralSecurityException, IOException {
-        byte[] pubdata = EncryptionManager.readAll(publicKey);
-        byte[] privdata = null;
-        if (privateKey != null) {
-            privdata = EncryptionManager.readAll(privateKey);
-        }
-        this.encryptionManager = new EncryptionManager(pubdata, privdata);
+        this(readAll(publicKey), readAll(privateKey));
     }
 
     /**
@@ -187,7 +316,7 @@ public class LicenseManager {
         String base64Signature = null;
         // Read the license file as a property file.
         Properties prop = new Properties();
-        prop.load(new FileReader(file));
+        prop.load(new InputStreamReader(new FileInputStream(file), ENCODING));
         License lic = new License();
         for (Object key : prop.keySet()) {
             String value = (String) prop.get(key);
@@ -207,7 +336,7 @@ public class LicenseManager {
         byte[] data = writeLicenseToByteArray(lic);
 
         // Validate the signature
-        if (!encryptionManager.verify(data, sig)) {
+        if (!verify(data, sig)) {
             throw new LicenseException("invalid license signature");
         }
 
@@ -238,7 +367,7 @@ public class LicenseManager {
         byte[] data = writeLicenseToByteArray(lic);
 
         // Then sign the byte array
-        byte[] signature = this.encryptionManager.sign(data);
+        byte[] signature = sign(data);
         String base64signature = Base64.encode(signature);
 
         // Create property file
@@ -249,7 +378,7 @@ public class LicenseManager {
         prop.put(SIGNATURE, base64signature);
 
         // Write the property file
-        prop.store(new FileWriter(file), "License file");
+        prop.store(new OutputStreamWriter(new FileOutputStream(file), ENCODING), "License file");
     }
 
     /**

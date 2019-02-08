@@ -1,3 +1,7 @@
+
+[![Build](http://git.patrikdufresne.com/pdsl/license/badges/master/build.svg)](http://git.patrikdufresne.com/pdsl/license)
+[![Coverage](http://sonar.patrikdufresne.com/api/project_badges/measure?project=com.patrikdufresne%3Alicense&metric=coverage)](http://sonar.patrikdufresne.com/dashboard?id=com.patrikdufresne%3Alicense)
+
 # How it work ?
 This project provide a java library to be used by your java project to easily validate a license file.
 
